@@ -1,20 +1,39 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/timer.h"
+#include "hardware/pio.h"
+#include "ws2812.pio.h"
 
 // Definição dos pinos
 #define GREEN_LED 11
 #define BLUE_LED 12
 #define BUTTOM_A 5
 #define BUTTOM_B 6
+#define MATRIX 7
 
 // Constante para debouncing
 uint32_t volatile last_time = 0;
+
+// Constantes para matriz de led
+uint8_t volatile number = 0;
+const uint8_t  NLED = 25;
+PIO pio = pio0;
+uint sm = 0;
 
 // Inicia e seta a direção do pino 
 void init_gpio(uint8_t gpio, uint8_t dir) {
     gpio_init(gpio);
     gpio_set_dir(gpio, dir);
+}
+
+// Função para colocar a cor do LED  na matriz
+static inline void put_pixel(uint32_t pixel_grb) {
+    pio_sm_put_blocking(pio0, 0, pixel_grb);
+}
+
+// Função para representar a cor em formato RGB
+static inline uint32_t color(uint8_t r, uint8_t g, uint8_t b) {
+    return ((uint32_t)(g) << 24) | ((uint32_t)(r) << 16) | ((uint32_t)(b) << 8);
 }
 
 // Função de interrupção
@@ -28,13 +47,13 @@ void led_handler(uint8_t gpio, uint32_t events) {
         // Alterna o led verde
         if(gpio == BUTTOM_A) {
             gpio_put(GREEN_LED, !gpio_get(GREEN_LED));
-            printf("Alternando led Verde!");
+            printf("Alternando led Verde!\n");
         }
 
         // Alterna o led azul
         if(gpio == BUTTOM_B) {
             gpio_put(BLUE_LED, !gpio_get(BLUE_LED));
-            printf("Alternando led Azul!");
+            printf("Alternando led Azul!\n");
         }
     }
 
@@ -52,12 +71,17 @@ int main() {
     gpio_pull_up(BUTTOM_A);
     gpio_pull_up(BUTTOM_B);
 
+    // Configura a máquina de estados PIO para começar a controlar os LEDs WS2812.
+    uint offset = pio_add_program(pio, &ws2812_program);
+    ws2812_program_init(pio, sm, offset, MATRIX, 800000, false);
+
     // Seta a função de callback quando os botões a e b forem pressionados
     gpio_set_irq_enabled_with_callback(BUTTOM_A, GPIO_IRQ_EDGE_FALL, true, &led_handler);
     gpio_set_irq_enabled_with_callback(BUTTOM_B, GPIO_IRQ_EDGE_FALL, true, &led_handler);
 
     while (true) {
-        printf("Hello, world!\n");
+        for (int i = 0; i < NLED; i++)
+            put_pixel(color(5, 5, 5));
         sleep_ms(1000);
     }
 }

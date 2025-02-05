@@ -40,6 +40,8 @@ add_executable(serial serial.c )
 pico_set_program_name(serial "serial")
 pico_set_program_version(serial "0.1")
 
+pico_generate_pio_header(serial ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/generated)
+
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(serial 1)
 pico_enable_stdio_usb(serial 1)
@@ -47,7 +49,8 @@ pico_enable_stdio_usb(serial 1)
 # Add the standard library to the build
 target_link_libraries(serial
         pico_stdlib
-        hardware_timer)
+        hardware_timer
+        hardware_pio)
 
 # Add the standard include files to the build
 target_include_directories(serial PRIVATE
