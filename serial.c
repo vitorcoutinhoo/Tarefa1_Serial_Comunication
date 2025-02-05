@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
+#include "hardware/timer.h"
 
 // Definição dos pinos
 #define GREEN_LED 11
@@ -7,7 +8,10 @@
 #define BUTTOM_A 5
 #define BUTTOM_B 6
 
-// Inicia e seta a direção do pino
+// Constante para debouncing
+uint32_t volatile last_time = 0;
+
+// Inicia e seta a direção do pino 
 void init_gpio(uint8_t gpio, uint8_t dir) {
     gpio_init(gpio);
     gpio_set_dir(gpio, dir);
@@ -15,10 +19,19 @@ void init_gpio(uint8_t gpio, uint8_t dir) {
 
 // Função de interrupção
 void led_handler(uint8_t gpio, uint32_t events) {
+    uint32_t current_time = to_us_since_boot(get_absolute_time());
 
-    if(gpio == BUTTOM_A) gpio_put(GREEN_LED, !gpio_get(GREEN_LED));
+    // Debouncing de 250ms
+    if (current_time - last_time > 250000) {
+        last_time = current_time;
 
-    if(gpio == BUTTOM_B) gpio_put(BLUE_LED, !gpio_get(BLUE_LED));
+        // Alterna o led verde
+        if(gpio == BUTTOM_A) gpio_put(GREEN_LED, !gpio_get(GREEN_LED));
+
+        // Alterna o led azul
+        if(gpio == BUTTOM_B) gpio_put(BLUE_LED, !gpio_get(BLUE_LED));
+    }
+
 }
 
 int main() {
