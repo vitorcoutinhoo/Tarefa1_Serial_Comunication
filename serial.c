@@ -13,6 +13,14 @@ void init_gpio(uint8_t gpio, uint8_t dir) {
     gpio_set_dir(gpio, dir);
 }
 
+// Função de interrupção
+void led_handler(uint8_t gpio, uint32_t events) {
+
+    if(gpio == BUTTOM_A) gpio_put(GREEN_LED, !gpio_get(GREEN_LED));
+
+    if(gpio == BUTTOM_B) gpio_put(BLUE_LED, !gpio_get(BLUE_LED));
+}
+
 int main() {
     stdio_init_all();
 
@@ -24,6 +32,10 @@ int main() {
 
     gpio_pull_up(BUTTOM_A);
     gpio_pull_up(BUTTOM_B);
+
+    // Seta a função de callback quando os botões a e b forem pressionados
+    gpio_set_irq_enabled_with_callback(BUTTOM_A, GPIO_IRQ_EDGE_FALL, true, &led_handler);
+    gpio_set_irq_enabled_with_callback(BUTTOM_B, GPIO_IRQ_EDGE_FALL, true, &led_handler);
 
     while (true) {
         printf("Hello, world!\n");
