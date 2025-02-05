@@ -26,10 +26,16 @@ void led_handler(uint8_t gpio, uint32_t events) {
         last_time = current_time;
 
         // Alterna o led verde
-        if(gpio == BUTTOM_A) gpio_put(GREEN_LED, !gpio_get(GREEN_LED));
+        if(gpio == BUTTOM_A) {
+            gpio_put(GREEN_LED, !gpio_get(GREEN_LED));
+            printf("Alternando led Verde!");
+        }
 
         // Alterna o led azul
-        if(gpio == BUTTOM_B) gpio_put(BLUE_LED, !gpio_get(BLUE_LED));
+        if(gpio == BUTTOM_B) {
+            gpio_put(BLUE_LED, !gpio_get(BLUE_LED));
+            printf("Alternando led Azul!");
+        }
     }
 
 }
