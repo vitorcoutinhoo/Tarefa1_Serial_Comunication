@@ -35,12 +35,12 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(serial serial.c )
+add_executable(serial serial.c lib/led_matrix.c)
 
 pico_set_program_name(serial "serial")
 pico_set_program_version(serial "0.1")
 
-pico_generate_pio_header(serial ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/generated)
+pico_generate_pio_header(serial ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/lib)
 
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(serial 1)
@@ -54,7 +54,7 @@ target_link_libraries(serial
 
 # Add the standard include files to the build
 target_include_directories(serial PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
+        ${CMAKE_CURRENT_LIST_DIR}/lib
 )
 
 # Add any user requested libraries

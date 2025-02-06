@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/timer.h"
-#include "hardware/pio.h"
 #include "ws2812.pio.h"
+#include "led_matrix.h"
 
 // Definição dos pinos
 #define GREEN_LED 11
@@ -14,26 +14,14 @@
 // Constante para debouncing
 uint32_t volatile last_time = 0;
 
-// Constantes para matriz de led
+// Constante para o numero na matriz de led
 uint8_t volatile number = 0;
-const uint8_t  NLED = 25;
-PIO pio = pio0;
-uint sm = 0;
+
 
 // Inicia e seta a direção do pino 
 void init_gpio(uint8_t gpio, uint8_t dir) {
     gpio_init(gpio);
     gpio_set_dir(gpio, dir);
-}
-
-// Função para colocar a cor do LED  na matriz
-static inline void put_pixel(uint32_t pixel_grb) {
-    pio_sm_put_blocking(pio0, 0, pixel_grb);
-}
-
-// Função para representar a cor em formato RGB
-static inline uint32_t color(uint8_t r, uint8_t g, uint8_t b) {
-    return ((uint32_t)(g) << 24) | ((uint32_t)(r) << 16) | ((uint32_t)(b) << 8);
 }
 
 // Função de interrupção
