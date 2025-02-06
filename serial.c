@@ -14,10 +14,6 @@
 // Constante para debouncing
 uint32_t volatile last_time = 0;
 
-// Constante para o numero na matriz de led
-uint8_t volatile number = 0;
-
-
 // Inicia e seta a direção do pino 
 void init_gpio(uint8_t gpio, uint8_t dir) {
     gpio_init(gpio);
@@ -68,8 +64,9 @@ int main() {
     gpio_set_irq_enabled_with_callback(BUTTOM_B, GPIO_IRQ_EDGE_FALL, true, &led_handler);
 
     while (true) {
-        for (int i = 0; i < NLED; i++)
-            put_pixel(color(5, 5, 5));
-        sleep_ms(1000);
+        for(uint number = 0; number < 10; number++){
+            display_number(number, color(5, 5, 5));
+            sleep_ms(1000);
+        }
     }
 }
