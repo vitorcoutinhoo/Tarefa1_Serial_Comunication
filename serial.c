@@ -3,6 +3,9 @@
 #include "hardware/timer.h"
 #include "ws2812.pio.h"
 #include "led_matrix.h"
+#include "hardware/i2c.h"
+#include "ssd1306.h"
+#include "font.h"
 
 // Definição dos pinos
 #define GREEN_LED 11
@@ -10,6 +13,12 @@
 #define BUTTOM_A 5
 #define BUTTOM_B 6
 #define MATRIX 7
+
+// Pinos do display 
+#define I2C_PORT i2c1
+#define I2C_SDA 14
+#define I2C_SCL 15
+#define endereco 0x3C
 
 // Constante para debouncing
 uint32_t volatile last_time = 0;
@@ -55,18 +64,42 @@ int main() {
     gpio_pull_up(BUTTOM_A);
     gpio_pull_up(BUTTOM_B);
 
+    // Inicializa o i2c na taxa de 400khz.
+    i2c_init(I2C_PORT, 400 * 1000);
+
+    // Seta os pinos do displau pra função i2c.
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C); 
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+
+    // Coloca os pinos em pull-up.
+    gpio_pull_up(I2C_SDA); 
+    gpio_pull_up(I2C_SCL); 
+
     // Configura a máquina de estados PIO para começar a controlar os LEDs WS2812.
     uint offset = pio_add_program(pio, &ws2812_program);
     ws2812_program_init(pio, sm, offset, MATRIX, 800000, false);
 
-    // Seta a função de callback quando os botões a e b forem pressionados
+    // Seta a função de callback quando os botões a e b forem pressionados.
     gpio_set_irq_enabled_with_callback(BUTTOM_A, GPIO_IRQ_EDGE_FALL, true, &led_handler);
     gpio_set_irq_enabled_with_callback(BUTTOM_B, GPIO_IRQ_EDGE_FALL, true, &led_handler);
 
+    // Inicializa e configura o display
+    ssd1306_t ssd; 
+    ssd1306_init(&ssd, WIDTH, HEIGHT, false, endereco, I2C_PORT); 
+    ssd1306_config(&ssd); 
+    ssd1306_send_data(&ssd);
+
+    // Limpa o display.
+    ssd1306_fill(&ssd, false);
+    ssd1306_send_data(&ssd);
+
+
     while (true) {
-        for(uint number = 0; number < 10; number++){
-            display_number(number, color(5, 5, 5));
-            sleep_ms(1000);
-        }
+        ssd1306_fill(&ssd, false); 
+        ssd1306_draw_string(&ssd, "ALGUMA COISA", 15, 25); 
+        ssd1306_draw_string(&ssd, "LEGAL", 42, 37); 
+        ssd1306_send_data(&ssd); 
+
+        sleep_ms(1000);
     }
 }
