@@ -95,10 +95,17 @@ int main() {
 
 
     while (true) {
+        char c;
+
         ssd1306_fill(&ssd, false); 
-        ssd1306_draw_string(&ssd, "Alguma Coisa", 15, 25); 
-        ssd1306_draw_string(&ssd, "Legal", 42, 37); 
-        ssd1306_send_data(&ssd); 
+        ssd1306_rect(&ssd, 0, 0, 128, 63, true, false);
+        ssd1306_draw_char(&ssd, c, 10, 25);
+        ssd1306_send_data(&ssd);
+
+        if (stdio_usb_connected()) {
+            if (scanf("%c", &c) == 1) 
+                printf("Recebido: %c\n", c);
+        }
 
         sleep_ms(1000);
     }
