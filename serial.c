@@ -96,8 +96,8 @@ int main() {
 
     while (true) {
         ssd1306_fill(&ssd, false); 
-        ssd1306_draw_string(&ssd, "ALGUMA COISA", 15, 25); 
-        ssd1306_draw_string(&ssd, "LEGAL", 42, 37); 
+        ssd1306_draw_string(&ssd, "Alguma Coisa", 15, 25); 
+        ssd1306_draw_string(&ssd, "Legal", 42, 37); 
         ssd1306_send_data(&ssd); 
 
         sleep_ms(1000);
