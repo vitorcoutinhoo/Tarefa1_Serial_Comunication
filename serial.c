@@ -13,6 +13,7 @@
 #define BUTTOM_A 5
 #define BUTTOM_B 6
 #define MATRIX 7
+#define Max 48
 
 // Pinos do display 
 #define I2C_PORT i2c1
@@ -93,20 +94,45 @@ int main() {
     ssd1306_fill(&ssd, false);
     ssd1306_send_data(&ssd);
 
+    char buffer[Max + 1] = "";
+    uint8_t count = 0;
 
     while (true) {
-        char c;
 
         ssd1306_fill(&ssd, false); 
         ssd1306_rect(&ssd, 0, 0, 128, 63, true, false);
-        ssd1306_draw_char(&ssd, c, 10, 25);
+
+        for (uint i = 0; i < count; i++){ 
+            uint8_t x = 16 + (i % 12) * 8;  
+            uint8_t y = 12 + (i / 12) * 10;
+
+            ssd1306_draw_char(&ssd, buffer[i], x, y);
+        }
+
         ssd1306_send_data(&ssd);
 
         if (stdio_usb_connected()) {
-            if (scanf("%c", &c) == 1) 
-                printf("Recebido: %c\n", c);
-        }
+            char c;
 
-        sleep_ms(1000);
+            if (scanf("%c", &c) == 1) {
+                if (count < Max) {
+                    buffer[count++] = c;
+                    buffer[count] = '\0';
+
+                    printf("Recebido: %c\n", c);
+                }
+                else {
+                    printf("Limite de %d caracteres atingido!\nApagando o display!\n", Max);
+
+                    // Reseta o display
+                    ssd1306_fill(&ssd, false); 
+                    ssd1306_rect(&ssd, 0, 0, 128, 63, true, false);
+
+                    count = 0;
+                    buffer[count++] = c;
+                    buffer[count] = '\0';
+                }
+            }
+        }
     }
 }
