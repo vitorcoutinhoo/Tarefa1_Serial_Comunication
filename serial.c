@@ -13,21 +13,41 @@
 #define BUTTOM_A 5
 #define BUTTOM_B 6
 #define MATRIX 7
-#define Max 48
 
 // Pinos do display 
 #define I2C_PORT i2c1
 #define I2C_SDA 14
 #define I2C_SCL 15
 #define endereco 0x3C
+#define Max 48
+ssd1306_t ssd;
 
 // Constante para debouncing
 uint32_t volatile last_time = 0;
+
+// Inicia o buffer e o contador do display
+char buffer[Max + 1] = "";
+uint8_t count = 0;
 
 // Inicia e seta a direção do pino 
 void init_gpio(uint8_t gpio, uint8_t dir) {
     gpio_init(gpio);
     gpio_set_dir(gpio, dir);
+}
+
+// Printa o buffer no display: 4 linhas de 12 char
+void print_buffer() {
+    ssd1306_fill(&ssd, false); 
+    ssd1306_rect(&ssd, 0, 0, 128, 63, true, false);
+
+    for (uint i = 0; i < count; i++){ 
+        uint8_t x = 16 + (i % 12) * 8;  
+        uint8_t y = 12 + (i / 12) * 10;
+
+        ssd1306_draw_char(&ssd, buffer[i], x, y);
+    }
+
+    ssd1306_send_data(&ssd);
 }
 
 // Função de interrupção
@@ -42,12 +62,32 @@ void led_handler(uint8_t gpio, uint32_t events) {
         if(gpio == BUTTOM_A) {
             gpio_put(GREEN_LED, !gpio_get(GREEN_LED));
             printf("Alternando led Verde!\n");
+
+            ssd1306_fill(&ssd, false);
+            ssd1306_rect(&ssd, 0, 0, 128, 63, true, false);
+            ssd1306_draw_string(&ssd, "Led Verde", 28, 22);
+            ssd1306_draw_string(&ssd, "Alternado", 28, 32);
+            ssd1306_send_data(&ssd);
+            
+            add_alarm_in_ms(1000, print_buffer, NULL, false);
+
+            return;
         }
 
         // Alterna o led azul
         if(gpio == BUTTOM_B) {
             gpio_put(BLUE_LED, !gpio_get(BLUE_LED));
             printf("Alternando led Azul!\n");
+
+            ssd1306_fill(&ssd, false);
+            ssd1306_rect(&ssd, 0, 0, 128, 63, true, false);
+            ssd1306_draw_string(&ssd, "Led Azul", 28, 22);
+            ssd1306_draw_string(&ssd, "Alternado", 28, 32);
+            ssd1306_send_data(&ssd);
+
+            add_alarm_in_ms(1000, print_buffer, NULL, false);
+
+            return;
         }
     }
 
@@ -85,7 +125,6 @@ int main() {
     gpio_set_irq_enabled_with_callback(BUTTOM_B, GPIO_IRQ_EDGE_FALL, true, &led_handler);
 
     // Inicializa e configura o display
-    ssd1306_t ssd; 
     ssd1306_init(&ssd, WIDTH, HEIGHT, false, endereco, I2C_PORT); 
     ssd1306_config(&ssd); 
     ssd1306_send_data(&ssd);
@@ -94,27 +133,12 @@ int main() {
     ssd1306_fill(&ssd, false);
     ssd1306_send_data(&ssd);
 
-    char buffer[Max + 1] = "";
-    uint8_t count = 0;
-
     while (true) {
-
-        ssd1306_fill(&ssd, false); 
-        ssd1306_rect(&ssd, 0, 0, 128, 63, true, false);
-
-        // Printa o buffer no display: 4 linhas de 12 char
-        for (uint i = 0; i < count; i++){ 
-            uint8_t x = 16 + (i % 12) * 8;  
-            uint8_t y = 12 + (i / 12) * 10;
-
-            ssd1306_draw_char(&ssd, buffer[i], x, y);
-        }
-
-        ssd1306_send_data(&ssd);
-
         if (stdio_usb_connected()) {
             char c;
-
+            
+            print_buffer();
+            
             if (scanf("%c", &c) == 1) {
                 if (count < Max) {
                     buffer[count++] = c;
@@ -126,7 +150,7 @@ int main() {
                     if (c >= '0' && c <= '9') {
                         uint8_t number = c - '0';
                         display_number(number, color(5, 5, 5));
-                        sleep_ms(100);
+                        sleep_ms(200);
                     }
                     else
                         display_off();
@@ -146,16 +170,12 @@ int main() {
                     if (c >= '0' && c <= '9') {
                         uint8_t number = c - '0';
                         display_number(number, color(5, 5, 5));
-                        sleep_ms(100);
+                        sleep_ms(200);
                     }
                     else
                         display_off();
                 }
-
             }
         }
-
-        // 100ms antes de começar a printar os char no display
-        sleep_ms(100);
     }
 }
