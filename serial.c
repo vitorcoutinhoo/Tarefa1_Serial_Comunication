@@ -102,6 +102,7 @@ int main() {
         ssd1306_fill(&ssd, false); 
         ssd1306_rect(&ssd, 0, 0, 128, 63, true, false);
 
+        // Printa o buffer no display: 4 linhas de 12 char
         for (uint i = 0; i < count; i++){ 
             uint8_t x = 16 + (i % 12) * 8;  
             uint8_t y = 12 + (i / 12) * 10;
@@ -120,6 +121,15 @@ int main() {
                     buffer[count] = '\0';
 
                     printf("Recebido: %c\n", c);
+
+                    // Mostra um numero na matriz de led, se for um char entre 0 e 9
+                    if (c >= '0' && c <= '9') {
+                        uint8_t number = c - '0';
+                        display_number(number, color(5, 5, 5));
+                        sleep_ms(100);
+                    }
+                    else
+                        display_off();
                 }
                 else {
                     printf("Limite de %d caracteres atingido!\nApagando o display!\n", Max);
@@ -129,10 +139,23 @@ int main() {
                     ssd1306_rect(&ssd, 0, 0, 128, 63, true, false);
 
                     count = 0;
-                    buffer[count++] = c;
+                    buffer[count++] = c; // Pega o primeiro char apos resetar
                     buffer[count] = '\0';
+
+                    // Mostra um numero na matriz de led, se for um char entre 0 e 9
+                    if (c >= '0' && c <= '9') {
+                        uint8_t number = c - '0';
+                        display_number(number, color(5, 5, 5));
+                        sleep_ms(100);
+                    }
+                    else
+                        display_off();
                 }
+
             }
         }
+
+        // 100ms antes de começar a printar os char no display
+        sleep_ms(100);
     }
 }

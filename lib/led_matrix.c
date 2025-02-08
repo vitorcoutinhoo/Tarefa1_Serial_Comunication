@@ -35,3 +35,9 @@ void display_number(uint8_t number, uint32_t color) {
         else put_pixel(0);
     }
 }
+
+// Função para apagar o display
+void display_off(){
+    for(int i = 0; i < NLED; i++)
+        put_pixel(0);
+}
