@@ -12,15 +12,15 @@
 #define BLUE_LED 12
 #define BUTTOM_A 5
 #define BUTTOM_B 6
-#define MATRIX 7
+#define MATRIX 7 // Matriz de Leds
 
 // Pinos do display 
 #define I2C_PORT i2c1
 #define I2C_SDA 14
 #define I2C_SCL 15
 #define endereco 0x3C
-#define Max 48
-ssd1306_t ssd;
+#define Max 48 // Max de caracteres
+ssd1306_t ssd; // Estrutura de configuração do display
 
 // Constante para debouncing
 uint32_t volatile last_time = 0;
@@ -37,6 +37,7 @@ void init_gpio(uint8_t gpio, uint8_t dir) {
 
 // Printa o buffer no display: 4 linhas de 12 char
 void print_buffer() {
+    // Borda da tela
     ssd1306_fill(&ssd, false); 
     ssd1306_rect(&ssd, 0, 0, 128, 63, true, false);
 
@@ -63,12 +64,14 @@ void led_handler(uint8_t gpio, uint32_t events) {
             gpio_put(GREEN_LED, !gpio_get(GREEN_LED));
             printf("Alternando led Verde!\n");
 
+            // Mensagem no display
             ssd1306_fill(&ssd, false);
             ssd1306_rect(&ssd, 0, 0, 128, 63, true, false);
             ssd1306_draw_string(&ssd, "Led Verde", 28, 22);
             ssd1306_draw_string(&ssd, "Alternado", 28, 32);
             ssd1306_send_data(&ssd);
             
+            // Chama a função para printar o buffer novamente no display
             add_alarm_in_ms(1000, print_buffer, NULL, false);
 
             return;
@@ -79,12 +82,14 @@ void led_handler(uint8_t gpio, uint32_t events) {
             gpio_put(BLUE_LED, !gpio_get(BLUE_LED));
             printf("Alternando led Azul!\n");
 
+            // Mensagem no display
             ssd1306_fill(&ssd, false);
             ssd1306_rect(&ssd, 0, 0, 128, 63, true, false);
             ssd1306_draw_string(&ssd, "Led Azul", 28, 22);
             ssd1306_draw_string(&ssd, "Alternado", 28, 32);
             ssd1306_send_data(&ssd);
 
+            // Chama a função para printar o buffer novamente no display
             add_alarm_in_ms(1000, print_buffer, NULL, false);
 
             return;
@@ -96,12 +101,13 @@ void led_handler(uint8_t gpio, uint32_t events) {
 int main() {
     stdio_init_all();
 
+    // Inicialização dos pinos
     init_gpio(GREEN_LED, GPIO_OUT);
     init_gpio(BLUE_LED, GPIO_OUT);
-
     init_gpio(BUTTOM_A, GPIO_IN);
     init_gpio(BUTTOM_B, GPIO_IN);
 
+    // Coloca os botões em pull up
     gpio_pull_up(BUTTOM_A);
     gpio_pull_up(BUTTOM_B);
 
@@ -131,17 +137,19 @@ int main() {
 
     // Limpa o display.
     ssd1306_fill(&ssd, false);
+    ssd1306_rect(&ssd, 0, 0, 128, 63, true, false); // Borda de tela
     ssd1306_send_data(&ssd);
 
     while (true) {
         if (stdio_usb_connected()) {
             char c;
             
+            // Printa o buffer
             print_buffer();
             
             if (scanf("%c", &c) == 1) {
                 if (count < Max) {
-                    buffer[count++] = c;
+                    buffer[count++] = c; // Coloca o char recebido no buffer
                     buffer[count] = '\0';
 
                     printf("Recebido: %c\n", c);
@@ -153,7 +161,7 @@ int main() {
                         sleep_ms(200);
                     }
                     else
-                        display_off();
+                        display_off(); // Se o caractere digitado não for um número apaga o display
                 }
                 else {
                     printf("Limite de %d caracteres atingido!\nApagando o display!\n", Max);
@@ -173,7 +181,7 @@ int main() {
                         sleep_ms(200);
                     }
                     else
-                        display_off();
+                        display_off(); // Se o caractere digitado não for um número apaga o display
                 }
             }
         }
